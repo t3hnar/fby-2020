@@ -21,3 +21,5 @@ libraryDependencies ++= Seq(
 licenses := Seq(("MIT", url("https://opensource.org/licenses/MIT")))
 
 scalacOptions in(Compile, doc) ++= Seq("-groups", "-implicits", "-no-link-warnings")
+
+addCompilerPlugin("org.typelevel" % "kind-projector" % "0.11.0" cross CrossVersion.full)
