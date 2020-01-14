@@ -2,11 +2,10 @@ package com.evolutiongaming.fby2020.step0
 
 import scala.collection.concurrent.TrieMap
 
+// concurrency
 trait Cache[K, V] {
 
   def get(key: K): Option[V]
-
-  //  def getOrLoad(key: K)(value: => V): V
 
   def put(key: K, value: V): Unit
 

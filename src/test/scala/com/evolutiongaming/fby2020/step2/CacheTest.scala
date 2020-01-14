@@ -7,7 +7,7 @@ import org.scalatest.matchers.should.Matchers
 
 class CacheTest extends AsyncFunSuite with Matchers {
 
-  test("cache") {
+  test("partitioned") {
     val result = for {
       cache <- Cache.of[Int, Int](100)
       value <- cache.get(0)

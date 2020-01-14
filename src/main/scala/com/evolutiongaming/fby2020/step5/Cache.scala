@@ -1,10 +1,11 @@
 package com.evolutiongaming.fby2020.step5
 
-import cats.effect.{Concurrent, IO}
 import cats.effect.concurrent.{Deferred, Ref}
+import cats.effect.{Concurrent, IO}
 import cats.implicits._
 import com.evolutiongaming.fby2020.step2.Partitions
 
+// getOrLoad handles errors
 trait Cache[K, V] {
 
   def get(key: K): IO[Option[V]]
@@ -29,25 +30,38 @@ object Cache {
           def get(key: K) = ref.get.flatMap { _.get(key).sequence }
 
           def getOrLoad(key: K)(load: => IO[V]) = {
-
-            def loadAndPut: IO[V] = {
-              for {
-                deferred <- Deferred[IO, IO[V]]
-                value    <- ref.modify { map =>
-                  map.get(key) match {
-                    case Some(value) => (map, value)
-                    case None        =>
-                      val value = load.attempt.flatMap { value => deferred.complete(value.liftTo[IO]) *> value.liftTo[IO] }
-                      (map.updated(key, deferred.get.flatten), value)
-                  }
-                }
-                value <- value
-              } yield value
-            }
-
             ref
               .get
-              .flatMap { _.get(key).fold { loadAndPut } { identity } }
+              .flatMap { map =>
+                map
+                  .get(key)
+                  .fold {
+                    Deferred[IO, IO[V]]
+                      .flatMap { deferred =>
+                        ref
+                          .modify { map =>
+                            map
+                              .get(key)
+                              .fold {
+                                val value = load
+                                  .attempt
+                                  .flatMap { value =>
+                                    deferred
+                                      .complete(value.liftTo[IO])
+                                      .flatMap { _ => value.liftTo[IO] }
+                                  }
+                                val map1 = map.updated(key, deferred.get.flatten)
+                                (map1, value)
+                              } { value =>
+                                (map, value)
+                              }
+                          }
+                          .flatten
+                      }
+                  } {
+                    identity
+                  }
+              }
           }
 
           def put(key: K, value: V) = ref.update { _.updated(key, value.pure[IO]) }

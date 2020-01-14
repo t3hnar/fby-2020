@@ -15,7 +15,7 @@ class CacheTest extends AsyncFunSuite with IOSuite with Matchers {
 
   val testError: Throwable = new RuntimeException with NoStackTrace
 
-  test("cache") {
+  test("getOrLoad handles errors") {
     val result = for {
       cache     <- Cache.of[Int, Int](100)
       deferred  <- Deferred[IO, Unit]

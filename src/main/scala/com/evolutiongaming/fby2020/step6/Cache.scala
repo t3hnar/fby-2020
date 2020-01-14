@@ -1,11 +1,11 @@
-package com.evolutiongaming.fby2020.step4
+package com.evolutiongaming.fby2020.step6
 
 import cats.effect.concurrent.{Deferred, Ref}
 import cats.effect.{Concurrent, IO}
 import cats.implicits._
 import com.evolutiongaming.fby2020.step2.Partitions
 
-// getOrLoad does laod in parallel for same key
+// getOrLoad caches errors
 trait Cache[K, V] {
 
   def get(key: K): IO[Option[V]]
@@ -36,15 +36,25 @@ object Cache {
                 map
                   .get(key)
                   .fold {
-                    Deferred[IO, V]
+                    Deferred[IO, IO[V]]
                       .flatMap { deferred =>
                         ref
                           .modify { map =>
                             map
                               .get(key)
                               .fold {
-                                val value = load.flatMap { value => deferred.complete(value).map { _ => value } }
-                                val map1 = map.updated(key, deferred.get)
+                                val value = load
+                                  .attempt
+                                  .flatMap { value =>
+                                    deferred
+                                      .complete(value.liftTo[IO])
+                                      .flatMap { _ =>
+                                        value
+                                          .fold(_ => ref.update { _.removed(key) }, _ => ().pure[IO])
+                                          .flatMap { _ => value.liftTo[IO] }
+                                      }
+                                  }
+                                val map1 = map.updated(key, deferred.get.flatten)
                                 (map1, value)
                               } { value =>
                                 (map, value)

@@ -8,12 +8,11 @@ import org.scalatest.Succeeded
 import org.scalatest.funsuite.AsyncFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class CacheTest extends AsyncFunSuite with IOSuite with Matchers {
 
-  test("cache") {
+  test("getOrLoad does not load concurrently for the same key") {
     val result = for {
       cache     <- Cache.of[Int, Int](100)
       deferred  <- Deferred[IO, Unit]

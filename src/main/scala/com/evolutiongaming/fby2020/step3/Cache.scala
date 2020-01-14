@@ -5,6 +5,7 @@ import cats.effect.concurrent.Ref
 import cats.implicits._
 import com.evolutiongaming.fby2020.step2.Partitions
 
+// getOrLoad
 trait Cache[K, V] {
 
   def get(key: K): IO[Option[V]]
@@ -28,18 +29,21 @@ object Cache {
           def get(key: K) = ref.get.map { _.get(key) }
 
           def getOrLoad(key: K)(load: => IO[V]) = {
-
-            def loadAndPut: IO[V] = {
-              load.flatMap { value =>
-                ref
-                  .update { _.updated(key, value) }
-                  .as(value)
-              }
-            }
-
             ref
               .get
-              .flatMap { _.get(key).fold { loadAndPut } { _.pure[IO] } }
+              .flatMap { map =>
+                map
+                  .get(key)
+                  .fold {
+                    load.flatMap { value =>
+                      ref
+                        .update { _.updated(key, value) }
+                        .map { _ => value }
+                    }
+                  } {
+                    _.pure[IO]
+                  }
+              }
           }
 
           def put(key: K, value: V) = ref.update { _.updated(key, value) }

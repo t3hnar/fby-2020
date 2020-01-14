@@ -3,6 +3,7 @@ package com.evolutiongaming.fby2020.step1
 import cats.effect.IO
 import cats.effect.concurrent.Ref
 
+// in order to implement getOrLoad
 trait Cache[K, V] {
 
   def get(key: K): IO[Option[V]]

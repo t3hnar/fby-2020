@@ -3,9 +3,14 @@ package com.evolutiongaming.fby2020.step2
 import cats.effect.IO
 import cats.effect.concurrent.Ref
 
+// partitions
 trait Cache[K, V] {
 
   def get(key: K): IO[Option[V]]
+
+  // def getOrLoad(key: K)(value: => V): V
+  // VS
+  // def getOrLoad(key: K): V
 
   def put(key: K, value: V): IO[Unit]
 

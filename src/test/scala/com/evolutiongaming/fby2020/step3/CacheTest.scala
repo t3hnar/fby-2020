@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 
 class CacheTest extends AsyncFunSuite with IOSuite with Matchers {
 
-  test("cache") {
+  test("getOrLoad") {
     val result = for {
       cache     <- Cache.of[Int, Int](100)
       deferred  <- Deferred[IO, Unit]
