@@ -3,7 +3,7 @@ package com.evolutiongaming.fby2020.step6
 import cats.effect.concurrent.{Deferred, Ref}
 import cats.effect.{Concurrent, IO}
 import cats.implicits._
-import com.evolutiongaming.fby2020.step2.Partitions
+import com.evolutiongaming.fby2020.step3.Partitions
 
 // getOrLoad caches errors
 trait Cache[K, V] {
@@ -19,7 +19,7 @@ trait Cache[K, V] {
 
 object Cache {
 
-  def of[K, V](implicit F: Concurrent[IO]): IO[Cache[K, V]] = {
+  def create[K, V](implicit F: Concurrent[IO]): IO[Cache[K, V]] = {
 
     Ref[IO]
       .of(Map.empty[K, IO[V]])
@@ -75,9 +75,9 @@ object Cache {
       }
   }
 
-  def of[K, V](nrOfPartitions: Int)(implicit F: Concurrent[IO]): IO[Cache[K, V]] = {
+  def partitioned[K, V](nrOfPartitions: Int)(implicit F: Concurrent[IO]): IO[Cache[K, V]] = {
     Partitions
-      .of[K, Cache[K, V]](nrOfPartitions, _ => of[K, V])
+      .create[K, Cache[K, V]](nrOfPartitions, _ => create[K, V])
       .map { partitions =>
         new Cache[K, V] {
 

@@ -1,4 +1,4 @@
-package com.evolutiongaming.fby2020.step2
+package com.evolutiongaming.fby2020.step3
 
 import cats.effect.IO
 import cats.implicits._
@@ -9,7 +9,7 @@ class PartitionsTest extends AsyncFunSuite with Matchers {
 
   test("partitions") {
     Partitions
-      .of[Int, String](3, _.toString.pure[IO])
+      .create[Int, String](3, _.toString.pure[IO])
       .map { partitions =>
         partitions(0) shouldEqual "0"
         partitions(1) shouldEqual "1"

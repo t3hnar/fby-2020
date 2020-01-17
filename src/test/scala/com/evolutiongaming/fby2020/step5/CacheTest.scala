@@ -17,7 +17,7 @@ class CacheTest extends AsyncFunSuite with IOSuite with Matchers {
 
   test("getOrLoad handles errors") {
     val result = for {
-      cache     <- Cache.of[Int, Int](100)
+      cache     <- Cache.partitioned[Int, Int](100)
       deferred  <- Deferred[IO, Unit]
       ref       <- Ref[IO].of(0)
       getOrLoad  = cache.getOrLoad(0) {

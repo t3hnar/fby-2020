@@ -3,9 +3,8 @@ package com.evolutiongaming.fby2020.step3
 import cats.effect.IO
 import cats.effect.concurrent.Ref
 import cats.implicits._
-import com.evolutiongaming.fby2020.step2.Partitions
 
-// getOrLoad
+// partitions
 trait Cache[K, V] {
 
   def get(key: K): IO[Option[V]]
@@ -19,7 +18,7 @@ trait Cache[K, V] {
 
 object Cache {
 
-  def of[K, V]: IO[Cache[K, V]] = {
+  def create[K, V]: IO[Cache[K, V]] = {
     Ref[IO]
       .of(Map.empty[K, V])
       .map { ref =>
@@ -53,9 +52,9 @@ object Cache {
       }
   }
 
-  def of[K, V](nrOfPartitions: Int): IO[Cache[K, V]] = {
+  def partitioned[K, V](nrOfPartitions: Int): IO[Cache[K, V]] = {
     Partitions
-      .of[K, Cache[K, V]](nrOfPartitions, _ => of[K, V])
+      .create[K, Cache[K, V]](nrOfPartitions, _ => create[K, V])
       .map { partitions =>
         new Cache[K, V] {
 

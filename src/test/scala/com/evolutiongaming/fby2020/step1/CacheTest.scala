@@ -9,7 +9,7 @@ class CacheTest extends AsyncFunSuite with Matchers {
 
   test("cache") {
     val result = for {
-      cache <- Cache.of[Int, Int]
+      cache <- Cache.create[Int, Int]
       value <- cache.get(0)
       _      = value shouldEqual none
       _     <- cache.put(0, 0)

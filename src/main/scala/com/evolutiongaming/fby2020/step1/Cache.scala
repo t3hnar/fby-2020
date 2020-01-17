@@ -15,11 +15,10 @@ trait Cache[K, V] {
 
 object Cache {
 
-  def of[K, V]: IO[Cache[K, V]] = {
+  def create[K, V]: IO[Cache[K, V]] = {
     Ref[IO]
       .of(Map.empty[K, V])
       .map { ref =>
-
         new Cache[K, V] {
 
           def get(key: K) = ref.get.map { _.get(key) }

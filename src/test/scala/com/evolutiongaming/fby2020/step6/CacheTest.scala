@@ -16,7 +16,7 @@ class CacheTest extends AsyncFunSuite with IOSuite with Matchers {
 
   test("getOrLoad does not leak resources in case of errors") {
     val result = for {
-      cache     <- Cache.of[Int, Int](100)
+      cache     <- Cache.partitioned[Int, Int](100)
       value     <- cache.getOrLoad(0) { testError.raiseError[IO, Int] }.attempt
       _          = value shouldEqual testError.asLeft
       value     <- cache.getOrLoad(0) { 0.pure[IO] }.attempt
