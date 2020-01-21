@@ -9,7 +9,7 @@ trait Cache[K, V] {
 
   def put(key: K, value: V): Unit
 
-  def getOrLoad(key: K)(value: => IO[V]): IO[V]
+  def getOrLoad(key: K)(value: => V): V
 
-  def remove(key: K): IO[Unit]
+  def remove(key: K): Unit
 }

@@ -5,8 +5,7 @@ import cats.effect.concurrent.Ref
 import cats.implicits._
 
 // IO
-trait
-Cache[K, V] {
+trait Cache[K, V] {
 
   def get(key: K): IO[Option[V]]
 
