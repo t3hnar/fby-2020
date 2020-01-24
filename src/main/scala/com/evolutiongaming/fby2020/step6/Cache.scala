@@ -33,38 +33,32 @@ object Cache {
             ref
               .get
               .flatMap { map =>
-                map
-                  .get(key)
-                  .fold {
-                    Deferred[IO, IO[V]]
-                      .flatMap { deferred =>
-                        ref
-                          .modify { map =>
-                            map
-                              .get(key)
-                              .fold {
-                                val value = load
-                                  .attempt
-                                  .flatMap { value =>
-                                    deferred
-                                      .complete(value.liftTo[IO])
-                                      .flatMap { _ =>
-                                        value
-                                          .fold(_ => ref.update { _.removed(key) }, _ => ().pure[IO])
-                                          .flatMap { _ => value.liftTo[IO] }
-                                      }
+                map.getOrElse(key, Deferred[IO, IO[V]]
+                  .flatMap { deferred =>
+                    ref
+                      .modify { map =>
+                        map
+                          .get(key)
+                          .fold {
+                            val value = load
+                              .attempt
+                              .flatMap { value =>
+                                deferred
+                                  .complete(value.liftTo[IO])
+                                  .flatMap { _ =>
+                                    value
+                                      .fold(_ => ref.update { _.removed(key) }, _ => ().pure[IO])
+                                      .flatMap { _ => value.liftTo[IO] }
                                   }
-                                val map1 = map.updated(key, deferred.get.flatten)
-                                (map1, value)
-                              } { value =>
-                                (map, value)
                               }
+                            val map1 = map.updated(key, deferred.get.flatten)
+                            (map1, value)
+                          } { value =>
+                            (map, value)
                           }
-                          .flatten
                       }
-                  } {
-                    identity
-                  }
+                      .flatten
+                  })
               }
           }
 

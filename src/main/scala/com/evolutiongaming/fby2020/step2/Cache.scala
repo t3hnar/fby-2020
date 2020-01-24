@@ -28,21 +28,10 @@ object Cache {
           def get(key: K) = ref.get.map { _.get(key) }
 
           def getOrLoad(key: K)(load: => IO[V]) = {
-            ref
-              .get
-              .flatMap { map =>
-                map
-                  .get(key)
-                  .fold {
-                    load.flatMap { value =>
-                      ref
-                        .update { _.updated(key, value) }
-                        .map { _ => value }
-                    }
-                  } {
-                    _.pure[IO]
-                  }
-              }
+            get(key).flatMap {
+              case Some(value) => value.pure[IO]
+              case None        => load.flatTap { value => put(key, value) }
+            }
           }
 
           def put(key: K, value: V) = ref.update { _.updated(key, value) }

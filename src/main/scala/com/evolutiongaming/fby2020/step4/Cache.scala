@@ -33,28 +33,24 @@ object Cache {
             ref
               .get
               .flatMap { map =>
-                map
-                  .get(key)
-                  .fold {
-                    Deferred[IO, V]
-                      .flatMap { deferred =>
-                        ref
-                          .modify { map =>
-                            map
-                              .get(key)
-                              .fold {
-                                val value = load.flatMap { value => deferred.complete(value).map { _ => value } }
-                                val map1 = map.updated(key, deferred.get)
-                                (map1, value)
-                              } { value =>
-                                (map, value)
-                              }
-                          }
-                          .flatten
-                      }
-                  } {
-                    identity
-                  }
+                map.getOrElse(
+                  key,
+                  Deferred[IO, V]
+                    .flatMap { deferred =>
+                      ref
+                        .modify { map =>
+                          map
+                            .get(key)
+                            .fold {
+                              val value = load.flatTap { value => deferred.complete(value) }
+                              val map1 = map.updated(key, deferred.get)
+                              (map1, value)
+                            } { value =>
+                              (map, value)
+                            }
+                        }
+                        .flatten
+                    })
               }
           }
 
