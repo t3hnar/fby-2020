@@ -2,6 +2,7 @@ package com.evolutiongaming.fby2020.live
 
 import cats.implicits._
 import cats.effect.IO
+import cats.effect.concurrent.Ref
 
 import scala.collection.concurrent.TrieMap
 
@@ -11,7 +12,7 @@ trait Cache[K, V] {
 
   def put(key: K, value: V): Unit
 
-  def getOrLoad(key: K)(value: => V): V
+  def getOrLoad(key: K)(load: => V): V
 
   def remove(key: K): Unit
 }
@@ -24,7 +25,7 @@ object Cache {
 
       def get(key: K) = ???
 
-      def getOrLoad(key: K)(value: => V) = ???
+      def getOrLoad(key: K)(load: => V) = ???
 
       def put(key: K, value: V) = ???
 
